@@ -13,127 +13,157 @@ Soal Shift Modul 2
 ##### Catatan : Tidak boleh menggunakan crontab.
 
 ```sh
-#include <stdio.h> 
-#include <dirent.h> 
+#include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <stdio.h>
 #include <string.h>
 
-char *rename_it(char * remove_it)
-{
-    char re [100];
-    char *ext=strrchr(remove_it, '.');
-    char *ree = strncpy(re, remove_it, ext-remove_it);
-    //printf("THISSSS??? %s\n", ree);
-    return ree;
+
+void wat_list(char *dari);
+
+
+int main(void) {
+
+    wat_list(".");
+    return 0;
 }
 
 
-// void thiss(char * path){
-    
-//     if(ext) {
-//         char *hehe=ext;
 
-//         if((strcmp(hehe, ".png")) == 0){
-
-//             if (len > 9){
-//                 if(!strcmp(exx, "_grey.png")){
-//               char *ext=strrchr(path, '.');
-//     char *exx=strrchr(path, '_');
-//     char extension[] = "_grey.png";
-//     int len=strlen(path);     // printf("%s..\n", path);
-//                     printf("this is NOT the file you-re looking for\n");
-//                     return;
-//                 }
-//             }
-//             printf("this IS the file you are lookin for!\n");
-//             char *re=rename_it(dirr->d_name);
-//             //printf("THIS????? %s\n", re);
-//             char *newname=strcat(re, "_grey.png");
-//             // rename(path, newname);
-//             // printf("hmmm %s\n", newname);
-//         }
-//     }
-        
-// }
-
-void wat_file(char *path)
+void wat_list(char *dari)
 {
     struct dirent *dirr;
-    DIR *da_dir = opendir(path);
-    char this[1000];
+    DIR *dir = opendir(dari);
+    int i;
+    char where[]="/home/Penunggu/modul2/gambar/";
 
-    if (!da_dir)
+    if (!dir)
         return;
-
-    while ((dirr = readdir(da_dir)) != NULL)
+        //printf("before while");
+    while ((dirr = readdir(dir)) != NULL)
     {
-        if (strcmp(dirr->d_name, ".") != 0 && strcmp(dirr->d_name, "..") != 0)
-        {
-            if (dirr->d_type == DT_REG)
+        if (dirr->d_type == DT_DIR) {
+
+            char path[1024];
+
+            //printf("hehe\n");
+            for (i=0; i<strlen(path); i++)
             {
-                printf("file : %s\n", dirr->d_name);
-                // printf("type is: %d", dirr->d_type);
-                //thiss(dirr->d_name);
-
-                char *ext=strrchr(dirr->d_name, '.');
-                char *exx=strrchr(dirr->d_name, '_');
-                char extension[] = "_grey.png";
-                int len=strlen(dirr->d_name);
-
-                if(ext) {
-                    char *hehe=ext;
-
-                    if((strcmp(hehe, ".png")) == 0){
-
-                        if (len > 9){
-                            if(!strcmp(exx, "_grey.png")){
-                            // printf("%s..\n", path);
-                                printf("this is NOT the file you-re looking for\n");
-                                return;
-                            }
-                        }
-                        printf("this IS the file you are lookin for!\n");
-                        char *re=rename_it(dirr->d_name);
-                        //printf("THIS????? %s\n", re);
-                        //char *newname=strcat(re, "_grey.png");
-                        rename(dirr->d_name, strcat(re, "_grey.png"));
-                        if(rename(dirr->d_name, strcat(re, "_grey.png")) == 0){
-                            printf("hmmm %s\n", dirr->d_name);
-                        }
-                        else{
-                            printf("gagal:(\n");
-                        }
-                    }
-                }
-                
+                path[i] = '\0';
             }
-                
-            else if(dirr->d_type == DT_DIR)
-            {
-                strcpy(this, path);
-                strcat(this, "/");
-                strcat(this, dirr->d_name);
-                printf("in folderrr :%s\n", dirr->d_name);
-                //printf("-- %s\n", this);
-                printf("--------\n");
-                wat_file(this);
-            }
-            else{
-                printf("file.. : %s\n", dirr->d_name);
-            }
+
+
+            if (strcmp(dirr->d_name, ".") == 0 || strcmp(dirr->d_name, "..") == 0)
+                continue;
+            snprintf(path, sizeof(path), "%s/%s", dari, dirr->d_name);
+            // printf("%*s[%s]\n", indent, "", dirr->d_name);
+            printf("[%s]\n", dirr->d_name);
+            printf("from: %s\n", path);
+            // listdir(path, indent + 2);
+            wat_list(path);
         }
-    }
-    printf("-------------------\n\n");
+        else
+        {
+            int len=strlen(dirr->d_name);
+            char apa1[len+1];
 
-    closedir(da_dir);
+            for (i=0; i<len+1; i++)
+            {
+                apa1[i] = '\0';
+            }
+
+            strcpy(apa1, dirr->d_name);
+
+            char *ext=strrchr(apa1, '.');
+            char *exx=strrchr(apa1, '_');
+            int flag=0;
+
+            if (ext)
+            {
+              //printf("apa? %s\n", ext);
+              if (strcmp(ext, ".png") == 0)
+              {
+                if (exx){
+                  //printf("apaa? %s\n", exx);
+                  if(!strcmp(exx, "_grey.png"))
+                  {
+                    printf("this is NOT the file you re lookin for\n");
+                    printf("not file : %s\n", dirr->d_name);
+
+                    char gimana[1024];
+                    char dimana[1024];
+                    for (i=0; i<strlen(gimana); i++)
+                    {
+                        gimana[i] = '\0';
+                        dimana[i] = '\0';
+                    }
+                    strcpy(gimana, dirr->d_name);
+                    snprintf(dimana, sizeof(dimana), "/home/Penunggu/modul2/gambar/%s", gimana);
+                    printf("%s\n", dimana);
+                    if (rename(gimana, dimana) != 0)
+                    {
+                      printf("gabisa :(\n");
+                    }
+                    flag=1;
+                  }
+
+                }
+                if (flag==0)
+                {
+                  printf("this IS the file you're lookin for!\n");
+                  printf("file is : %s\n", dirr->d_name);
+
+
+                  //===============================================
+                  // printf("%d\n", len);
+                  char nameit[len+6];
+
+                  for (i=0; i<len+1; i++)
+                  {
+                      nameit[i] = '\0';
+                  }
+                  strncpy(nameit, apa1, len-4);
+                  strcat(nameit, "_grey.png");
+
+                  // printf("should be: %s\n", nameit);
+                  char posisi[1024];
+                  char no[1024];
+                  for (i=0; i<strlen(posisi); i++)
+                  {
+                      posisi[i] = '\0';
+                      no[i] = '\0';
+                  }
+                  snprintf(posisi, sizeof(posisi), "/home/Penunggu/modul2/gambar/%s", nameit);
+                  printf("where?? %s\n", posisi);
+                  strcpy(no, dirr->d_name);
+                  if(rename(no, posisi) == 0)
+                  {
+                    printf(":)\n");
+                  }
+                  else
+                  {
+                    printf("gagal:(\n");
+                    for (i=0; i<strlen(posisi); i++)
+                    {
+                        no[i] = '\0';
+                    }
+                    strcpy(no, dirr->d_name);
+                    rename(no, posisi);
+                  }
+
+                }
+              }
+
+            }
+
+    }
+  //  printf("dir or not dir that is the question\n");
+
+  }
+  printf("============\n");
+  closedir(dir);
 }
 
-int main(void) 
-{
-
-    wat_file(".");
-
-
-    return 0; 
-} 
 ```
 
