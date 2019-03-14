@@ -167,3 +167,123 @@ void wat_list(char *dari)
 
 ```
 
+### 2. Soal 2
+##### Pada suatu hari Kusuma dicampakkan oleh Elen karena Elen dimenangkan oleh orang lain. Semua kenangan tentang Elen berada pada file bernama “elen.ku” pada direktori “hatiku”. Karena sedih berkepanjangan, tugas kalian sebagai teman Kusuma adalah membantunya untuk menghapus semua kenangan tentang Elen dengan membuat program C yang bisa mendeteksi owner dan group dan menghapus file “elen.ku” setiap 3 detik dengan syarat ketika owner dan grupnya menjadi “www-data”. Ternyata kamu memiliki kendala karena permission pada file “elen.ku”. Jadi, ubahlah permissionnya menjadi 777. Setelah kenangan tentang Elen terhapus, maka Kusuma bisa move on.
+##### Catatan: Tidak boleh menggunakan crontab
+
+
+### 3. Soal 3
+##### Diberikan file campur2.zip. Di dalam file tersebut terdapat folder “campur2”. 
+##### Buatlah program C yang dapat :
+##### i)  mengekstrak file zip tersebut.
+##### ii) menyimpan daftar file dari folder “campur2” yang memiliki ekstensi .txt ke dalam file daftar.txt. 
+##### Catatan:  
+##### Gunakan fork dan exec.
+##### Gunakan minimal 3 proses yang diakhiri dengan exec.
+##### Gunakan pipe
+##### Pastikan file daftar.txt dapat diakses dari text editor
+
+
+```sh
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+// #include <fstream>
+#include <sys/wait.h>
+
+int main()
+{
+  pid_t satu;
+  pid_t dua;
+  pid_t tiga;
+
+  int how;
+  int da_pipe[2];
+
+  char *do1[3] = {"unzip", "campur2.zip", NULL};
+  char *do2[3] = {"ls, campur2", NULL};
+  char *do3[3] = {"grep", ".txt$", NULL};
+
+  if(pipe(da_pipe) == -1)
+  {
+    perror("pipe");
+  }
+
+  satu = fork();
+
+  if(satu == 0)
+  {
+    execv("/usr/bin/unzip", do1);
+
+  }
+    while((waitpid(satu, &how, 0)) > 0);
+
+    dua = fork();
+
+    if(dua == 0)
+    {
+      // close(da_pipe[1]);
+
+      close(da_pipe[0]);
+      // dup2(da_pipe[1], STDOUT_FILENO);
+      dup2(da_pipe[1], STDOUT_FILENO);
+      execv("/bin/ls", do2);
+
+    }
+    else
+    {
+      while((waitpid(dua, &how, 0)) > 0);
+      tiga = fork();
+
+      if(tiga == 0)
+      {
+        // dup2(da_pipe[0], STDIN_FILENO);
+
+        int file = open("daftar.txt", O_WRONLY|O_CREAT, 0666);
+        close(da_pipe[0]);
+        // redir((char*)"./daftar.txt");
+        dup2(file, STDOUT_FILENO);
+        execv("bin/grep", do3);
+
+        close(file);
+      }
+
+      close(da_pipe[0]);
+      close(da_pipe[1]);
+
+      while((waitpid(tiga, &how, 0)) > 0);
+
+
+      return 0;
+
+    }
+
+}
+
+```
+
+### 4. Soal 4
+##### Dalam direktori /home/[user]/Documents/makanan terdapat file makan_enak.txt yang berisikan daftar makanan terkenal di Surabaya. Elen sedang melakukan diet dan seringkali tergiur untuk membaca isi makan_enak.txt karena ngidam makanan enak. Sebagai teman yang baik, Anda membantu Elen dengan membuat program C yang berjalan setiap 5 detik untuk memeriksa apakah file makan_enak.txt pernah dibuka setidaknya 30 detik yang lalu (rentang 0 - 30 detik).
+##### Jika file itu pernah dibuka, program Anda akan membuat 1 file makan_sehat#.txt di direktori /home/[user]/Documents/makanan dengan '#' berisi bilangan bulat dari 1 sampai tak hingga untuk mengingatkan Elen agar berdiet.
+
+##### Contoh:
+##### File makan_enak.txt terakhir dibuka pada detik ke-1
+##### Pada detik ke-10 terdapat file makan_sehat1.txt dan makan_sehat2.txt
+
+##### Catatan: 
+##### dilarang menggunakan crontab
+##### Contoh nama file : makan_sehat1.txt, makan_sehat2.txt, dst
+
+
+### 5. Soal 5
+##### Kerjakan poin a dan b di bawah:
+##### Buatlah program c untuk mencatat log setiap menit dari file log pada syslog ke /home/[user]/log/[dd:MM:yyyy-hh:mm]/log#.log
+##### Ket:
+##### Per 30 menit membuat folder /[dd:MM:yyyy-hh:mm]
+##### Per menit memasukkan log#.log ke dalam folder tersebut
+##### ‘#’ : increment per menit. Mulai dari 1
+##### Buatlah program c untuk menghentikan program di atas.
+##### NB: Dilarang menggunakan crontab dan tidak memakai argumen ketika menjalankan program.
+
+
