@@ -526,51 +526,77 @@ File
 File 
 
 ```sh
-#include <stdio.h>
+#include <sys/types.h>
 #include <sys/stat.h>
-#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <syslog.h>
 #include <string.h>
 
-// daemon
+int main() {
+  pid_t pid, sid;
 
-int main ()
+  pid = fork();
 
-{
+  if (pid < 0) {
+    exit(EXIT_FAILURE);
+  }
 
-  struct stat dastat;
+  if (pid > 0) {
+    exit(EXIT_SUCCESS);
+  }
 
-  stat("makan_enak.txt",&dastat);
-  printf("stat: %s", ctime(&dastat.st_atime));
+  umask(0);
 
-   // =========================
+  sid = setsid();
 
-   time_t wattime;
-   char* timestr;
+  if (sid < 0) {
+    exit(EXIT_FAILURE);
+  }
 
-   wattime = time(NULL);
+  if ((chdir("/")) < 0) {
+    exit(EXIT_FAILURE);
+  }
 
-   timestr = ctime(&wattime);
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
 
-   printf("now: %s", timestr);
+  while(1) {
+    struct stat dastat;
+    char *nama = "/home/Penunggu/Documents/makanan";
+    char tothis[1000];
+    char *wat = "makanan_enak";
+    char end[4] = "txt";
+    int i;
 
-   int len = strlen(ctime(&wattime));
-   char now[len];
-   char stat_is[len];
-   int i;
+    snprintf(tothis, sizeof(tothis), "%s/%s", nama, wat);
+    stat("makan_enak.txt",&dastat);
+    int i;
+    time_t filetime;
+    filetime = dastat.st_atime;
 
-   for(i=0; i<len; i++)
-   {
-     now[i] = '\0';
-     stat_is[i] = '\0';
-   }
-   // printf("-- len %d\n", len);
-   strcpy(stat_is, ctime(&dastat.st_atime));
+     time_t wattime;
+     wattime = time(NULL);
+     double tik = difftime(wattime, filetime);
+     printf("%f\n", tik);
 
-   strcpy(now, ctime(&wattime));
+     if (tik <= 30)
+     {
+       FILE *fh;
+       fh=fopen(tothis,"w");
+     }
 
-  return 0;
 
+    sleep(30);
+  }
+
+  exit(EXIT_SUCCESS);
 }
+
 
 ```
 
