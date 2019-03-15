@@ -486,7 +486,7 @@ int main()
       {
         // dup2(da_pipe[0], STDIN_FILENO);
 
-        int file = open("daftar.txt", O_WRONLY|O_CREAT, 0666);
+        int file = open("daftar.txt", O_WRONLY|O_CREAT, 0777);
         close(da_pipe[0]);
         // redir((char*)"./daftar.txt");
         dup2(file, STDOUT_FILENO);
@@ -499,11 +499,12 @@ int main()
       close(da_pipe[1]);
 
       while((waitpid(tiga, &how, 0)) > 0);
-    
-    
+
+
     }
 
 }
+
 
 ```
 
