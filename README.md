@@ -13,23 +13,57 @@ Soal Shift Modul 2
 ##### Catatan : Tidak boleh menggunakan crontab.
 
 ```sh
-#include <unistd.h>
 #include <sys/types.h>
-#include <dirent.h>
+#include <sys/stat.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <syslog.h>
 #include <string.h>
-
+#include <dirent.h>
 
 void wat_list(char *dari);
 
+int main() {
+  pid_t pid, sid;
 
-int main(void) {
+  pid = fork();
 
-    wat_list(".");
-    return 0;
+  if (pid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if (pid > 0) {
+    exit(EXIT_SUCCESS);
+  }
+
+  umask(0);
+
+  sid = setsid();
+
+  if (sid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if ((chdir("/")) < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
+
+  while(1) {
+
+    wat_list("/home/Penunggu/modul2");
+
+    sleep(20);
+  }
+
+  exit(EXIT_SUCCESS);
 }
-
-
 
 void wat_list(char *dari)
 {
@@ -58,8 +92,8 @@ void wat_list(char *dari)
                 continue;
             snprintf(path, sizeof(path), "%s/%s", dari, dirr->d_name);
             // printf("%*s[%s]\n", indent, "", dirr->d_name);
-            printf("[%s]\n", dirr->d_name);
-            printf("from: %s\n", path);
+            //printf("[%s]\n", dirr->d_name);
+            //printf("from: %s\n", path);
             // listdir(path, indent + 2);
             wat_list(path);
         }
@@ -88,8 +122,8 @@ void wat_list(char *dari)
                   //printf("apaa? %s\n", exx);
                   if(!strcmp(exx, "_grey.png"))
                   {
-                    printf("this is NOT the file you re lookin for\n");
-                    printf("not file : %s\n", dirr->d_name);
+                    //printf("this is NOT the file you re lookin for\n");
+                    //printf("not file : %s\n", dirr->d_name);
 
                     char gimana[1024];
                     char dimana[1024];
@@ -100,10 +134,10 @@ void wat_list(char *dari)
                     }
                     strcpy(gimana, dirr->d_name);
                     snprintf(dimana, sizeof(dimana), "/home/Penunggu/modul2/gambar/%s", gimana);
-                    printf("%s\n", dimana);
+                    //printf("%s\n", dimana);
                     if (rename(gimana, dimana) != 0)
                     {
-                      printf("gabisa :(\n");
+                      //printf("gabisa :(\n");
                     }
                     flag=1;
                   }
@@ -111,8 +145,8 @@ void wat_list(char *dari)
                 }
                 if (flag==0)
                 {
-                  printf("this IS the file you're lookin for!\n");
-                  printf("file is : %s\n", dirr->d_name);
+                  //printf("this IS the file you're lookin for!\n");
+                  //printf("file is : %s\n", dirr->d_name);
 
 
                   //===============================================
@@ -135,15 +169,15 @@ void wat_list(char *dari)
                       no[i] = '\0';
                   }
                   snprintf(posisi, sizeof(posisi), "/home/Penunggu/modul2/gambar/%s", nameit);
-                  printf("where?? %s\n", posisi);
+                  //printf("where?? %s\n", posisi);
                   strcpy(no, dirr->d_name);
                   if(rename(no, posisi) == 0)
                   {
-                    printf(":)\n");
+                    //printf(":)\n");
                   }
                   else
                   {
-                    printf("gagal:(\n");
+                    //printf("gagal:(\n");
                     for (i=0; i<strlen(posisi); i++)
                     {
                         no[i] = '\0';
@@ -161,9 +195,10 @@ void wat_list(char *dari)
   //  printf("dir or not dir that is the question\n");
 
   }
-  printf("============\n");
+  //printf("============\n");
   closedir(dir);
 }
+
 
 ```
 
@@ -253,10 +288,8 @@ int main()
       close(da_pipe[1]);
 
       while((waitpid(tiga, &how, 0)) > 0);
-
-
-      return 0;
-
+    
+    
     }
 
 }
@@ -275,6 +308,73 @@ int main()
 ##### dilarang menggunakan crontab
 ##### Contoh nama file : makan_sehat1.txt, makan_sehat2.txt, dst
 
+```sh
+#include <stdio.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <string.h>
+
+// daemon
+
+int main ()
+
+{
+
+  struct stat dastat;
+
+  stat("makan_enak.txt",&dastat);
+  printf("stat: %s", ctime(&dastat.st_atime));
+
+   // =========================
+
+   time_t wattime;
+   char* timestr;
+
+   wattime = time(NULL);
+
+   timestr = ctime(&wattime);
+
+   printf("now: %s", timestr);
+
+   int len = strlen(ctime(&wattime));
+   char now[len];
+   char stat_is[len];
+   int i;
+
+   for(i=0; i<len; i++)
+   {
+     now[i] = '\0';
+     stat_is[i] = '\0';
+   }
+   // printf("-- len %d\n", len);
+   strcpy(stat_is, ctime(&dastat.st_atime));
+
+   strcpy(now, ctime(&wattime));
+
+   if(strcmp(now, stat_is) != 0)
+   {
+     char space[] = " ";
+     printf("hehe\n");
+     // char *ptrnow[6] = strtok_s(now, space, &next_token1);// = strtok(now, space);
+     // char *ptrstat[6] = strtok_s(stat_is, space, next_token2);// = strtok(stat_is, space);
+     //
+     // while (ptrnow != NULL || ptrstat != NULL)
+     // {
+     //
+     //
+     //
+     // }
+
+     // difference in second = ...
+
+ }
+
+
+  return 0;
+
+}
+
+```
 
 ### 5. Soal 5
 ##### Kerjakan poin a dan b di bawah:
