@@ -596,12 +596,37 @@ Sementara ini progres saya baru membuat folder dengan nama *[dd:MM:yyyy-hh:mm]*
 #include <unistd.h>
 #include <syslog.h>
 #include <string.h>
-#include <dirent.h>
-#include <time.h>
 
+int main() {
+  pid_t pid, sid;
 
-int main()
-{
+  pid = fork();
+
+  if (pid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if (pid > 0) {
+    exit(EXIT_SUCCESS);
+  }
+
+  umask(0);
+
+  sid = setsid();
+
+  if (sid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if ((chdir("/")) < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
+
+  while(1) {
 
     time_t y = time(NULL);
     struct tm tm = *localtime(&y);
@@ -613,13 +638,20 @@ int main()
 
     char *filename;
     if((filename = malloc(strlen("/home/Penunggu/")+strlen(here)+1)) != NULL){
-        filename[0] = '\0';   // ensures the memory is an empty string
+        filename[0] = '\0';
         strcat(filename,"/home/Penunggu/");
         strcat(filename,here);
     }
     int this = mkdir(filename, 0700);
 
-
+    
+    sleep(30);
+  }
+  
+  exit(EXIT_SUCCESS);
 }
+
+
+
 
 ```
