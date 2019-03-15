@@ -508,7 +508,7 @@ int main()
 
 ```
 
-File 
+Parent dari proses diatas adalah ketika dilakukan fork yang pertama kali. Lalu child pertama dari parent melakukan unzip. Setelah wait, fork kedua menghasilkan child kedua yang melakukan ls folder campur2. setelah itu dilakukan fork satu kali lagi yang melakukan grep semua list file .txt yang ada. Lalu hasil grep tadi dimasukkan ke file daftar.txt
 
 
 ### 4. Soal 4
