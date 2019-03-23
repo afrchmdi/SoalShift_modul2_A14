@@ -657,7 +657,7 @@ int main() {
               {
                 // printf("here %s\n", here);
 
-                if (chmod(here, 777))
+                if (chmod(here, 0777))
                 {
                     // printf("hm:(\n");
                 }
@@ -711,7 +711,24 @@ remove(here)
 
 ```
 
-`sleep(30)` agar file program berjalan tiap 3 detik
+`sleep(3)` agar file program berjalan tiap 3 detik
+
+
+----------------------------------
+#### Revisi soal 2
+
+pada penjalanan daemon perlu dilakukan sudo agar chmod dapat berjalan.
+
+`sudo ./'executable-file-name'`
+
+chmod tidak akan berjalan karena ketika kita menjalankan bash, user yang tercatat menjalankan bukan www-data, dimana hanya www-data saja yang bisa melakukan chmod.
+
+untuk mengubah owner dan grup dari file elen.ku juga dilakukan secara manual (tidak dalam program) dengan cara 
+
+```sh
+$ sudo chown www-data elen.ku
+$ sudo chgrp www-data elen.ku
+```
 
 
 ### 3. Soal 3
