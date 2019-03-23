@@ -913,6 +913,126 @@ int main() {
 
 ```
 
+----------------------------------
+#### Revisi soal 4
+```sh
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <syslog.h>
+#include <string.h>
+#include <time.h>
+
+int main() {
+  pid_t pid, sid;
+
+  pid = fork();
+
+  if (pid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if (pid > 0) {
+    exit(EXIT_SUCCESS);
+  }
+
+  umask(0);
+
+  sid = setsid();
+
+  if (sid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if ((chdir("/")) < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
+
+  int i = 1;
+
+  while(1) {
+    struct stat dastat;
+    char nama[] = "/home/Penunggu/Documents/makanan";
+    char tothis[200];
+    char wat[] = "makan_sehat";
+
+
+    stat("/home/Penunggu/Documents/makanan/makan_enak.txt",&dastat);
+    time_t filetime;
+    filetime = dastat.st_atime;
+
+     time_t wattime;
+     wattime = time(NULL);
+     double tik = difftime(wattime, filetime);
+     //printf("diff %f\n", tik);
+
+     if (tik <= 30)
+     {
+       int j;
+       for (j=0; j<strlen(tothis); j++)
+       {
+         tothis[j] = '\0';
+       }
+       snprintf(tothis, sizeof(tothis), "%s/%s%d.txt", nama, wat, i);
+       i++;
+       FILE *fh;
+       fh=fopen(tothis,"w");
+     }
+
+
+    sleep(5);
+  }
+
+  exit(EXIT_SUCCESS);
+}
+
+```
+
+`stat("/home/Penunggu/Documents/makanan/makan_enak.txt",&dastat);`
+
+da_stat adalah pointer pada struct stat yang berisi atribut file */home/Penunggu/Documents/makanan/makan_enak.txt*.
+
+```sh
+time_t filetime;
+filetime = dastat.st_atime;
+```
+variabel _filetime_ sebagai variabel yang menyimpan waktu akses dari file makan_enak.txt. 
+
+```sh
+time_t wattime;
+wattime = time(NULL);
+```
+variabel _wattime_ sebagai variabel yang menyimpan waktu sekarang.
+
+```sh
+double tik = difftime(wattime, filetime);
+```
+digunakan fungsi difftime() untuk mendapatkan selisih waktu dari waktu sekarang dengan waktu file akses.
+Apabila selisih waktu akses dan waktu sekarang kurang dari atau sama dengan 30 detik, maka akan dibuat file makan_sehat#.txt.
+
+```sh
+if (tik <= 30)
+     {
+       int j;
+       for (j=0; j<strlen(tothis); j++)
+       {
+         tothis[j] = '\0';
+       }
+       snprintf(tothis, sizeof(tothis), "%s/%s%d.txt", nama, wat, i);
+       i++;
+       FILE *fh;
+       fh=fopen(tothis,"w");
+     }
+```
+
 ### 5. Soal 5
 ##### Kerjakan poin a dan b di bawah:
 ##### Buatlah program c untuk mencatat log setiap menit dari file log pada syslog ke /home/[user]/log/[dd:MM:yyyy-hh:mm]/log#.log
