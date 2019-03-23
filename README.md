@@ -245,6 +245,90 @@ Pemanggilan fungsi dilakukan dengan memberikan parameter nama folder yang akan d
   ```
   FIle yang berekstensi png di cek apakah berakhiran *_grey.png* atau tidak. Jika iya, maka file akan dipindah ke folder modul2/gambar. Jika tidak, file akan direname sesuai dengan ketentuan soal.
   
+--tambahan--
+
+`while ((dirr = readdir(dir)) != NULL){ //code }`
+berarti  *//code* yang ada dalam while loop akan dieksekusi selama dalam direktori *dir* masih ada file/subfolder yang dicek (isinya tidak NULL).
+
+```sh
+if (dirr->d_type == DT_DIR) {
+
+            char path[1024];
+
+            //printf("hehe\n");
+            for (i=0; i<strlen(path); i++)
+            {
+                path[i] = '\0';
+            }
+
+
+            if (strcmp(dirr->d_name, ".") == 0 || strcmp(dirr->d_name, "..") == 0)
+                continue;
+            snprintf(path, sizeof(path), "%s/%s", dari, dirr->d_name);
+            // printf("%*s[%s]\n", indent, "", dirr->d_name);
+            //printf("[%s]\n", dirr->d_name);
+            //printf("from: %s\n", path);
+            // listdir(path, indent + 2);
+            wat_list(path);
+        }
+```
+Apabila dirr bertipe direktori maka akan dilakukan rekursi pada subfolder dengan memasukkan kembali nama folder tersebut ke dalam fungsi *wat_list*.
+
+selain dirr yang bertipe folder, maka akan dicek dalam `else`.
+
+```sh
+char *ext=strrchr(apa1, '.');
+char *exx=strrchr(apa1, '_');
+```
+ strrchr(apa1, '.') akan memberikan sebuah pointer yang menunjuk pada '.' terakhir yang ada pada string apa1(dirr->d_name).
+ sehingga apabila dir->d_name bernilai "ini.file.png" maka pointer ext akan menunjuk pada ".png"
+
+`if (ext)` apabila dirr->d_name yang disimpan dalam variabel apa1 mengandung '.' maka
+
+`if (strcmp(ext, ".png") == 0)` dilakukan pengecekan apakah file berekstensi ".png".
+
+jika iya dilakukan pengecekan lagi apakah nama file mengandung "_"
+`if (exx)`
+
+
+```sh
+if(!strcmp(exx, "_grey.png"))
+                  {
+                    //printf("this is NOT the file you re lookin for\n");
+                    //printf("not file : %s\n", dirr->d_name);
+ 
+                    char gimana[1024];
+                    char dimana[1024];
+                    for (i=0; i<strlen(gimana); i++)
+                    {
+                        gimana[i] = '\0';
+                        dimana[i] = '\0';
+                    }
+                    strcpy(gimana, dirr->d_name);
+                    snprintf(dimana, sizeof(dimana), "/home/Penunggu/modul2/gambar/%s", gimana);
+                    //printf("%s\n", dimana);
+                    if (rename(gimana, dimana) != 0)
+                    {
+                      //printf("gabisa :(\n");
+                    }
+                    flag=1;
+                  }
+```
+`char *exx=strrchr(apa1, '_');`
+
+variabel exx juga akan menunjukkan pointer dimana char '_' terakhir berada pada dirr->d_name apa1. 
+apabila ketika apa1(dirr->d_name) dicompare dengan "_grey.png", maka file tidak perlu diubah namanya, hanya perlu dipindah ke folder gambar.
+pemindahan file dilakukan dengan merename file dengan penambahan path. file yang berekstensi "_grey.png" akan diberi flag =1.
+
+`if (flag==0)` berarti file tidak berekstensi "_grey.png" dan perlu untuk diubah.
+
+```sh
+strncpy(nameit, apa1, len-4);
+strcat(nameit, "_grey.png");
+```
+nilai dirr->d_name yang disimpan dalam variabel apa1 dicopy ke variabel nameit hanya sampai sebelum ".png" (len-4).
+lalu nameit di strcat dengan "_grey.png" sehingga sekarang nama file dirr->d_name yang salah sudah benar sesuai persyaratan soal.
+
   
 ----------------------------------
 #### Revisi soal 1
@@ -456,9 +540,6 @@ snprintf(no, sizeof(no), "%s/%s", dari, dirr->d_name);
 ```
 Yang ada pada pagian `if (flag==0)` dimana `dirr->d_name` adalah file yang namanya perlu diubah karena belum berakhiran *_grey.png*, file direname dengan menggunakan full path juga.
 Jika merename tanpa menggunakan full path, seperti kodingan sebelumnya, maka pe-rename an akan gagal.
-
-
-
   
 
 ### 2. Soal 2
