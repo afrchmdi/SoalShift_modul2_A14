@@ -713,9 +713,7 @@ remove(here)
 
 `sleep(3)` agar file program berjalan tiap 3 detik
 
-
-----------------------------------
-#### Revisi soal 2
+-- tambahan --
 
 pada penjalanan daemon perlu dilakukan sudo agar chmod dapat berjalan.
 
@@ -823,6 +821,184 @@ int main()
 
 Parent dari proses diatas adalah ketika dilakukan fork yang pertama kali. Lalu child pertama dari parent melakukan unzip. Setelah wait, fork kedua menghasilkan child kedua yang melakukan ls folder campur2. setelah itu dilakukan fork satu kali lagi yang melakukan grep semua list file .txt yang ada. Lalu hasil grep tadi dimasukkan ke file daftar.txt
 
+
+----------------------------------
+#### Revisi soal 3
+```sh
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+
+int main()
+{
+  pid_t satu;
+  pid_t dua;
+  pid_t tiga;
+
+  int how;
+  int da_pipe[2];
+  int de_pipe[2];
+
+  char *do1[3] = {"unzip", "campur2.zip", NULL};
+  char *do2[3] = {"ls, campur2", NULL};
+  char *do3[3] = {"grep", ".txt$", NULL};
+
+  if(pipe(da_pipe) == -1)
+  {
+    perror("pipe");
+  }
+
+  satu = fork();
+
+  if(satu == 0)
+  {
+    execv("/usr/bin/unzip", do1);
+
+  }
+    if (pipe(de_pipe) == -1)
+    {
+      perror("pipe");
+    }
+    while((waitpid(satu, &how, 0)) > 0);
+
+    dua = fork();
+
+    if(dua == 0)
+    {
+      dup2(da_pipe[1], STDOUT_FILENO);
+      close(da_pipe[1]);
+      close(da_pipe[0]);
+      execv("/bin/ls", do2);
+
+    }
+    else
+    {
+      while((waitpid(dua, &how, 0)) > 0);
+      tiga = fork();
+
+      if(tiga == 0)
+      {
+        dup2(da_pipe[0], STDIN_FILENO);
+        dup2(de_pipe[1], STDOUT_FILENO);
+        close(da_pipe[0]);
+        close(da_pipe[1]);
+        close(de_pipe[0]);
+        close(de_pipe[1]);
+        execv("bin/grep", do3);
+
+      }
+      FILE *tmp;
+      FILE *file;
+      char wat[100024];
+
+      close(da_pipe[0]);
+      close(da_pipe[1]);
+      close(de_pipe[1]);
+      tmp = fdopen(de_pipe[0], "r");
+      file = fopen("/home/Penunggu/SoalShift_modul2_A14/soal3/daftar.txt", "w");
+      while(fgets(wat, sizeof(wat), tmp) != NULL)
+      {
+        fprintf(file, "%s", wat);
+      }
+      fclose(file);
+
+    }
+
+}
+
+```
+`pid_t satu, dua, tiga;`
+
+untuk menyimpan process id dari tiga fork yang akan dilakukan.
+
+```sh
+int da_pipe[2];
+int de_pipe[2];
+
+if(pipe(da_pipe) == -1)
+ {
+   perror("pipe");
+ }
+
+if (pipe(de_pipe) == -1)
+    {
+      perror("pipe");
+    }
+    
+```
+inisialisasi dan pembuatan pipe da_pipe dan de_pipe yang masing-masing mempunyai WRITE-END dan READ-END.
+
+```sh
+satu = fork();
+ 
+  if(satu == 0)
+  {
+    execv("/usr/bin/unzip", do1);
+ 
+  }
+
+```
+dilakukan fork, dan pada child dari proses fork yang pertama (satu) dilakukan unzip file campur2.zip dengan menggunakan execv.
+
+```sh
+while((waitpid(satu, &how, 0)) > 0);
+ 
+    dua = fork();
+ 
+    if(dua == 0)
+    {
+      dup2(da_pipe[1], STDOUT_FILENO);
+      close(da_pipe[1]);
+      close(da_pipe[0]);
+      execv("/bin/ls", do2);
+ 
+    }
+    
+```
+Pada parent proses satu, setelah menunggu proses unzip selesai, dilakukan fork yang kedua.
+pada child proses fork yang kedua, dilakukan ls pada folder campur2 hasil unzip campur2.zip.
+
+```sh
+else
+    {
+      while((waitpid(dua, &how, 0)) > 0);
+      tiga = fork();
+ 
+      if(tiga == 0)
+      {
+        dup2(da_pipe[0], STDIN_FILENO);
+        dup2(de_pipe[1], STDOUT_FILENO);
+        close(da_pipe[0]);
+        close(da_pipe[1]);
+        close(de_pipe[0]);
+        close(de_pipe[1]);
+        execv("bin/grep", do3);
+ 
+      }
+      FILE *tmp;
+      FILE *file;
+      char wat[100024];
+ 
+      close(da_pipe[0]);
+      close(da_pipe[1]);
+      close(de_pipe[1]);
+      tmp = fdopen(de_pipe[0], "r");
+      file = fopen("/home/Penunggu/SoalShift_modul2_A14/soal3/daftar.txt", "w");
+      while(fgets(wat, sizeof(wat), tmp) != NULL)
+      {
+        fprintf(file, "%s", wat);
+      }
+      fclose(file);
+ 
+    }
+    
+```
+Lalu pada parent proses nya, setelah menunggu ls selesai dilakukan, dilakukan fork sekali lagi (tiga).
+Dimana child proses dari fork tiga dilakukan grep hasil ls folder campur2 untuk nama file yang berakhiran ".txt".
+Lalu pada parent prosesnya hasil dari grep tadi disimpan ke file */home/Penunggu/SoalShift_modul2_A14/soal3/daftar.txt*.
 
 ### 4. Soal 4
 ##### Dalam direktori /home/[user]/Documents/makanan terdapat file makan_enak.txt yang berisikan daftar makanan terkenal di Surabaya. Elen sedang melakukan diet dan seringkali tergiur untuk membaca isi makan_enak.txt karena ngidam makanan enak. Sebagai teman yang baik, Anda membantu Elen dengan membuat program C yang berjalan setiap 5 detik untuk memeriksa apakah file makan_enak.txt pernah dibuka setidaknya 30 detik yang lalu (rentang 0 - 30 detik).
