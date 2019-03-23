@@ -245,6 +245,221 @@ Pemanggilan fungsi dilakukan dengan memberikan parameter nama folder yang akan d
   ```
   FIle yang berekstensi png di cek apakah berakhiran *_grey.png* atau tidak. Jika iya, maka file akan dipindah ke folder modul2/gambar. Jika tidak, file akan direname sesuai dengan ketentuan soal.
   
+  
+----------------------------------
+#### Revisi soal 1
+
+```sh
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <syslog.h>
+#include <string.h>
+#include <dirent.h>
+
+void wat_list(char *dari);
+
+int main() {
+  pid_t pid, sid;
+
+  pid = fork();
+
+  if (pid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if (pid > 0) {
+    exit(EXIT_SUCCESS);
+  }
+
+  umask(0);
+
+  sid = setsid();
+
+  if (sid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if ((chdir("/")) < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
+
+  while(1) {
+
+    wat_list("/home/Penunggu/modul2");
+
+    sleep(20);
+  }
+
+  exit(EXIT_SUCCESS);
+}
+
+void wat_list(char *dari)
+{
+    struct dirent *dirr;
+    DIR *dir = opendir(dari);
+    int i;
+    char where[]="/home/Penunggu/modul2/gambar/";
+
+    if (!dir)
+        return;
+        //printf("before while");
+    while ((dirr = readdir(dir)) != NULL)
+    {
+        if (dirr->d_type == DT_DIR) {
+
+            char path[1024];
+
+            //printf("hehe\n");
+            for (i=0; i<strlen(path); i++)
+            {
+                path[i] = '\0';
+            }
+
+
+            if (strcmp(dirr->d_name, ".") == 0 || strcmp(dirr->d_name, "..") == 0)
+                continue;
+            snprintf(path, sizeof(path), "%s/%s", dari, dirr->d_name);
+            wat_list(path);
+        }
+        else
+        {
+            int len=strlen(dirr->d_name);
+            char apa1[len+1];
+
+            for (i=0; i<len+1; i++)
+            {
+                apa1[i] = '\0';
+            }
+
+            strcpy(apa1, dirr->d_name);
+
+            char *ext=strrchr(apa1, '.');
+            char *exx=strrchr(apa1, '_');
+            int flag=0;
+
+            if (ext)
+            {
+              //printf("apa? %s\n", ext);
+              if (strcmp(ext, ".png") == 0)
+              {
+                if (exx){
+                  //printf("apaa? %s\n", exx);
+                  if(!strcmp(exx, "_grey.png"))
+                  {
+                    //printf("this is NOT the file you re lookin for\n");
+                    //printf("not file : %s\n", dirr->d_name);
+
+                    char gimana[1024];
+                    char dimana[1024];
+                    for (i=0; i<strlen(gimana); i++)
+                    {
+                        gimana[i] = '\0';
+                        dimana[i] = '\0';
+                    }
+                    snprintf(gimana, sizeof(gimana), "%s/%s", dari, apa1);
+                    snprintf(dimana, sizeof(dimana), "%s/gambar/%s", apa1);
+                    // printf("dari %s\n", gimana);
+                    // printf("jadi %s\n", dimana);
+
+                    if (rename(gimana, dimana) != 0)
+                    {
+                      //printf("gabisa :(\n");
+                    }
+                    flag=1;
+                  }
+
+                }
+                if (flag==0)
+                {
+                  //printf("this IS the file you're lookin for!\n");
+                  //printf("file is : %s\n", dirr->d_name);
+
+
+                  //===============================================
+                  // printf("%d\n", len);
+                  char nameit[len+6];
+
+                  for (i=0; i<len+1; i++)
+                  {
+                      nameit[i] = '\0';
+                  }
+                  strncpy(nameit, apa1, len-4);
+                  strcat(nameit, "_grey.png");
+
+                  // printf("should be: %s\n", nameit);
+                  char posisi[1024];
+                  char no[1024];
+                  for (i=0; i<strlen(posisi); i++)
+                  {
+                      posisi[i] = '\0';
+                      no[i] = '\0';
+                  }
+                  snprintf(posisi, sizeof(posisi), "/home/Penunggu/modul2/gambar/%s", nameit);
+                  //printf("where?? %s\n", posisi);
+                  snprintf(no, sizeof(no), "%s/%s", dari, dirr->d_name);
+                  // strcpy(no, dirr->d_name);
+                  // printf("file dari %s\n", no);
+                  // printf("file jadi %s\n", posisi);
+                  if(rename(no, posisi) == 0)
+                  {
+                    //printf(":)\n");
+                  }
+                  else
+                  {
+                    //printf("gagal:(\n");
+                    for (i=0; i<strlen(posisi); i++)
+                    {
+                        no[i] = '\0';
+                    }
+                    strcpy(no, dirr->d_name);
+                    rename(no, posisi);
+                  }
+
+                }
+              }
+
+            }
+
+    }
+  //  printf("dir or not dir that is the question\n");
+
+  }
+  //printf("============\n");
+  closedir(dir);
+}
+
+```
+
+Revisi yang dilakukan adalah penambahan full path untuk file yang direname serta direktori yang akan direkursi ke fungsi wat_list untuk di list dan dicek.
+
+```sh
+snprintf(gimana, sizeof(gimana), "%s/%s", dari, apa1);
+snprintf(dimana, sizeof(dimana), "%s/gambar/%s", dari, apa1);
+```
+Pada bagian `if (dirr->d_type == DT_DIR)`, dimana subfolder yang ada pada folder yang sedang dicek (variabel *dari*, parameter dari fungsi *wat_list*) akan dilist dan dicek dengan dimasukkan lagi (rekursif) ke fungsi wat_list.
+
+Variabel *gimana* yang sebelumnya hanya berupa nama folder, menjadi full path dari folder yang akan dicek.
+
+Penambahan full path juga dilakukan pada
+
+```sh
+snprintf(no, sizeof(no), "%s/%s", dari, dirr->d_name);
+```
+Yang ada pada pagian `if (flag==0)` dimana `dirr->d_name` adalah file yang namanya perlu diubah karena belum berakhiran *_grey.png*, file direname dengan menggunakan full path juga.
+Jika merename tanpa menggunakan full path, seperti kodingan sebelumnya, maka pe-rename an akan gagal.
+
+
+
+  
 
 ### 2. Soal 2
 ##### Pada suatu hari Kusuma dicampakkan oleh Elen karena Elen dimenangkan oleh orang lain. Semua kenangan tentang Elen berada pada file bernama “elen.ku” pada direktori “hatiku”. Karena sedih berkepanjangan, tugas kalian sebagai teman Kusuma adalah membantunya untuk menghapus semua kenangan tentang Elen dengan membuat program C yang bisa mendeteksi owner dan group dan menghapus file “elen.ku” setiap 3 detik dengan syarat ketika owner dan grupnya menjadi “www-data”. Ternyata kamu memiliki kendala karena permission pada file “elen.ku”. Jadi, ubahlah permissionnya menjadi 777. Setelah kenangan tentang Elen terhapus, maka Kusuma bisa move on.
